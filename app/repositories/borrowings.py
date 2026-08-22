@@ -1,39 +1,76 @@
-borrowings = []
+from app.database import SessionLocal
+from app.models.borrowings import Borrowing
 
 
 class BorrowingRepository:
 
     def get_all(self):
-        return borrowings
+        db = SessionLocal()
 
-    def create(self, borrowing):
-        borrowings.append(borrowing)
-        return borrowing
+        try:
+            return db.query(Borrowing).all()
+        finally:
+            db.close()
 
-    def count_active_by_book_id(self, book_id):
-        count = 0
-
-        for borrowing in borrowings:
-            if (
-                borrowing["book_id"] == book_id
-                and borrowing["status"] == "active"
-            ):
-                count += 1
-
-        return count
-    
     def get_by_id(self, borrowing_id):
-        for borrowing in borrowings:
-            if borrowing["id"] == borrowing_id:
-                return borrowing
+        db = SessionLocal()
 
-        return None
+        try:
+            return (
+                db.query(Borrowing)
+                .filter(Borrowing.id == borrowing_id)
+                .first()
+            )
+        finally:
+            db.close()
 
     def get_active(self):
-        active_borrowings = []
+        db = SessionLocal()
 
-        for borrowing in borrowings:
-            if borrowing["status"] == "active":
-                active_borrowings.append(borrowing)
+        try:
+            return (
+                db.query(Borrowing)
+                .filter(Borrowing.status == "active")
+                .all()
+            )
+        finally:
+            db.close()
 
-        return active_borrowings
+    def count_active_by_book_id(self, book_id):
+        db = SessionLocal()
+
+        try:
+            return (
+                db.query(Borrowing)
+                .filter(
+                    Borrowing.book_id == book_id,
+                    Borrowing.status == "active"
+                )
+                .count()
+            )
+        finally:
+            db.close()
+
+    def create(self, borrowing):
+        db = SessionLocal()
+
+        try:
+            db.add(borrowing)
+            db.commit()
+            db.refresh(borrowing)
+
+            return borrowing
+        finally:
+            db.close()
+
+    def update(self, borrowing):
+        db = SessionLocal()
+
+        try:
+            borrowing = db.merge(borrowing)
+            db.commit()
+            db.refresh(borrowing)
+
+            return borrowing
+        finally:
+            db.close()

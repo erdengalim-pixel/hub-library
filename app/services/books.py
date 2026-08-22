@@ -1,14 +1,15 @@
-from app.repositories.books import BookRepository
 from fastapi import HTTPException
+
+from app.repositories.books import BookRepository
 from app.repositories.borrowings import BorrowingRepository
+from app.models.books import Book
+from app.schemas.books import BookCreate
 
 class BookService:
 
     def __init__(self):
         self.repository = BookRepository()
-
-    def get_books(self):
-        return self.repository.get_all()
+        self.borrowing_repository = BorrowingRepository()
 
     def get_books(self):
         books = self.repository.get_all()
@@ -17,18 +18,82 @@ class BookService:
 
         for book in books:
             active_borrowings = self.borrowing_repository.count_active_by_book_id(
-                book["id"]
+                book.id
             )
 
-            available_quantity = book["quantity"] - active_borrowings
 
-            book_data = book.copy()
-            book_data["available_quantity"] = available_quantity
+            book_data = {
+                "id": book.id,
+                "inventory_number": book.inventory_number,
+                "title": book.title,
+                "author": book.author,
+                "is_available": active_borrowings == 0
+            }
 
             result.append(book_data)
 
         return result
 
-    def __init__(self):
-        self.repository = BookRepository()
-        self.borrowing_repository = BorrowingRepository()
+    def get_book(self, book_id):
+        book = self.repository.get_by_id(book_id)
+
+        if book is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Book not found"
+            )
+
+        active_borrowings = self.borrowing_repository.count_active_by_book_id(
+            book.id
+        )
+
+        return {
+            "id": book.id,
+            "inventory_number": book.inventory_number,
+            "title": book.title,
+            "author": book.author,
+            "is_available": active_borrowings == 0
+        }
+
+    def create_book(self, book_create: BookCreate):
+        inventory_number = book_create.inventory_number.zfill(5)
+
+        existing_book = self.repository.get_by_inventory_number(
+            inventory_number
+        )
+
+        if existing_book is not None:
+            raise HTTPException(
+                status_code=400,
+                detail="Inventory number already exists"
+            )
+
+        book = Book(
+            inventory_number=inventory_number,
+            title=book_create.title,
+            author=book_create.author
+        )
+
+        return self.repository.create(book)
+
+    def search_books(self, title):
+        books = self.repository.search_by_title(title)
+
+        result = []
+
+        for book in books:
+            active_borrowings = self.borrowing_repository.count_active_by_book_id(
+                book.id
+            )
+
+            book_data = {
+                "id": book.id,
+                "inventory_number": book.inventory_number,
+                "title": book.title,
+                "author": book.author,
+                "is_available": active_borrowings == 0
+            }
+
+            result.append(book_data)
+
+        return result

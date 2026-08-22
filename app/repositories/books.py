@@ -1,26 +1,58 @@
-books = [
-    {
-        "id": 1,
-        "title": "Clean Code",
-        "author": "Robert C. Martin",
-        "quantity": 3,
-    },
-    {
-        "id": 2,
-        "title": "Design Patterns",
-        "author": "Gang of Four",
-        "quantity": 2,
-    },
-]
+from app.database import SessionLocal
+from app.models.books import Book
 
 
 class BookRepository:
+
     def get_all(self):
-        return books
+        db = SessionLocal()
+
+        try:
+            return db.query(Book).all()
+        finally:
+            db.close()
 
     def get_by_id(self, book_id):
-        for book in books:
-            if book["id"] == book_id:
-                return book
+        db = SessionLocal()
 
-        return None
+        try:
+            return db.query(Book).filter(Book.id == book_id).first()
+        finally:
+            db.close()
+
+
+    def get_by_inventory_number(self, inventory_number):
+        db = SessionLocal()
+
+        try:
+            return (
+                db.query(Book)
+                .filter(Book.inventory_number == inventory_number)
+                .first()
+            )
+        finally:
+            db.close()
+
+    def create(self, book):
+        db = SessionLocal()
+
+        try:
+            db.add(book)
+            db.commit()
+            db.refresh(book)
+
+            return book
+        finally:
+            db.close()
+
+    def search_by_title(self, title):
+        db = SessionLocal()
+
+        try:
+            return (
+                db.query(Book)
+                .filter(Book.title.ilike(f"%{title}%"))
+                .all()
+            )
+        finally:
+            db.close()

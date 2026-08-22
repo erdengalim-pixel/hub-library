@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:16
+    container_name: hub-library-db
+
+    environment:
+      POSTGRES_DB: hub_library
+      POSTGRES_USER: hub_user
+      POSTGRES_PASSWORD: hub_password
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

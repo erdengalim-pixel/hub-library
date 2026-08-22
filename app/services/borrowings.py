@@ -2,6 +2,7 @@ from fastapi import HTTPException
 
 from app.repositories.books import BookRepository
 from app.repositories.borrowings import BorrowingRepository
+from app.models.borrowings import Borrowing
 
 from datetime import date, timedelta
 
@@ -11,7 +12,7 @@ class BorrowingService:
         self.book_repository = BookRepository()
         self.borrowing_repository = BorrowingRepository()
 
-    def borrow_book(self, book_id, tenant_name, company):
+    def borrow_book(self, book_id, tenant_name, company, phone_number):
         book = self.book_repository.get_by_id(book_id)
 
         if book is None:
@@ -24,24 +25,24 @@ class BorrowingService:
             book_id
         )
 
-        available_quantity = book["quantity"] - active_borrowings
 
-        if available_quantity <= 0:
+        if active_borrowings > 0:
             raise HTTPException(
                 status_code=400,
                 detail="Book is not available"
             )
 
-        borrowing = {
-            "id": len(self.borrowing_repository.get_all()) + 1,
-            "book_id": book_id,
-            "tenant_name": tenant_name,
-            "company": company,
-            "borrow_date": date.today(),
-            "due_date": date.today() - timedelta(days=1),
-            "return_date": None,
-            "status": "active"
-        }
+        borrowing = Borrowing(
+            book_id=book_id,
+            tenant_name=tenant_name,
+            company=company,
+            phone_number=phone_number,
+            borrow_date=date.today(),
+            due_date=date.today() + timedelta(days=30),
+            return_date=None,
+            status="active"
+        )
+        
 
         return self.borrowing_repository.create(borrowing)
 
@@ -54,16 +55,16 @@ class BorrowingService:
                 detail="Borrowing not found"
             )
 
-        if borrowing["status"] == "returned":
+        if borrowing.status == "returned":
             raise HTTPException(
                 status_code=400,
                 detail="Book already returned"
             )
 
-        borrowing["status"] = "returned"
-        borrowing["return_date"] = date.today()
+        borrowing.status = "returned"
+        borrowing.return_date = date.today()
 
-        return borrowing
+        return self.borrowing_repository.update(borrowing)
 
     def get_borrowings(self):
         return self.borrowing_repository.get_all()
@@ -77,7 +78,43 @@ class BorrowingService:
         overdue_borrowings = []
 
         for borrowing in active_borrowings:
-            if borrowing["due_date"] < date.today():
+            if borrowing.due_date < date.today():
                 overdue_borrowings.append(borrowing)
 
         return overdue_borrowings
+
+    def extend_borrowing(self, borrowing_id, days):
+        borrowing = self.borrowing_repository.get_by_id(borrowing_id)
+
+        if borrowing is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Borrowing not found"
+            )
+
+        if borrowing.status == "returned":
+            raise HTTPException(
+                status_code=400,
+                detail="Book already returned"
+            )
+
+        if days <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Days must be greater than 0"
+            )
+
+        borrowing.due_date = borrowing.due_date + timedelta(days=days)
+
+        return self.borrowing_repository.update(borrowing)
+    
+    def get_borrowing(self, borrowing_id):
+        borrowing = self.borrowing_repository.get_by_id(borrowing_id)
+
+        if borrowing is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Borrowing not found"
+            )
+
+        return borrowing
