@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from app.services.books import BookService
 from app.schemas.books import BookCreate
+from typing import Optional
 
 router = APIRouter()
 
@@ -12,8 +13,14 @@ def get_books():
     return service.get_books()
 
 @router.get("/books/search")
-def search_books(title: str):
-    return service.search_books(title)
+def search_books(
+    title: Optional[str] = None,
+    author: Optional[str] = None
+):
+    return service.search_books(
+        title=title,
+        author=author
+    )
 
 @router.get("/books/{book_id}")
 def get_book(book_id: int):

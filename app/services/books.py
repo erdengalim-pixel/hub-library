@@ -76,8 +76,17 @@ class BookService:
 
         return self.repository.create(book)
 
-    def search_books(self, title):
-        books = self.repository.search_by_title(title)
+    def search_books(self, title=None, author=None):
+        books = self.repository.search(
+            title=title,
+            author=author
+        )
+
+        if not books:
+            raise HTTPException(
+                status_code=404,
+                detail="Book not found"
+            )
 
         result = []
 
@@ -97,3 +106,5 @@ class BookService:
             result.append(book_data)
 
         return result
+
+    

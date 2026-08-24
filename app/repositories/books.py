@@ -56,3 +56,20 @@ class BookRepository:
             )
         finally:
             db.close()
+
+    def search(self, title=None, author=None):
+        db = SessionLocal()
+
+        try:
+            query = db.query(Book)
+
+            if title:
+                query = query.filter(Book.title.ilike(f"%{title}%"))
+
+            if author:
+                query = query.filter(Book.author.ilike(f"%{author}%"))
+
+            return query.all()
+
+        finally:
+            db.close()
