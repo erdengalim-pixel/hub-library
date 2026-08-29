@@ -1,9 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from app.core.security import get_current_user
 from app.schemas.borrowings import BorrowingCreate, BorrowingExtend
 from app.services.borrowings import BorrowingService
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(get_current_user)]
+)
+
 
 service = BorrowingService()
 

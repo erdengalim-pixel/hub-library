@@ -9,6 +9,7 @@ from app.database import Base
 
 from app.models.books import Book
 from app.models.borrowings import Borrowing
+from app.models.users import User
 
 
 # this is the Alembic Config object, which provides

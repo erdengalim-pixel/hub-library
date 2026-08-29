@@ -76,17 +76,12 @@ class BookService:
 
         return self.repository.create(book)
 
-    def search_books(self, title=None, author=None):
+    def search_books(self, q=None, title=None, author=None):
         books = self.repository.search(
+            q=q,
             title=title,
             author=author
         )
-
-        if not books:
-            raise HTTPException(
-                status_code=404,
-                detail="Book not found"
-            )
 
         result = []
 
@@ -107,4 +102,58 @@ class BookService:
 
         return result
 
+    def delete_book(self, book_id):
+        book = self.repository.get_by_id(book_id)
+
+        if book is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Book not found"
+            )
+
+        if not book.is_active:
+            raise HTTPException(
+                status_code=400,
+                detail="Book already deleted"
+            )
+
+        active_borrowings = self.borrowing_repository.count_active_by_book_id(
+            book.id
+        )
+
+        if active_borrowings > 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Book is currently borrowed"
+            )
+
+        book.is_active = False
+
+        self.repository.update(book)
+
+        return {
+            "message": "Book deleted successfully"
+        }
     
+    def restore_book(self, book_id):
+        book = self.repository.get_by_id(book_id)
+
+        if book is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Book not found"
+            )
+
+        if book.is_active:
+            raise HTTPException(
+                status_code=400,
+                detail="Book is already active"
+            )
+
+        book.is_active = True
+
+        self.repository.update(book)
+
+        return {
+            "message": "Book restored successfully"
+        }

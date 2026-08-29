@@ -8,7 +8,11 @@ class BookRepository:
         db = SessionLocal()
 
         try:
-            return db.query(Book).all()
+            return (
+        db.query(Book)
+        .filter(Book.is_active == True)
+        .all()
+            )
         finally:
             db.close()
 
@@ -45,6 +49,20 @@ class BookRepository:
         finally:
             db.close()
 
+    def update(self, book):
+        db = SessionLocal()
+
+        try:
+            merged_book = db.merge(book)
+
+            db.commit()
+
+            db.refresh(merged_book)
+
+            return merged_book
+        finally:
+            db.close()
+
     def search_by_title(self, title):
         db = SessionLocal()
 
@@ -57,11 +75,19 @@ class BookRepository:
         finally:
             db.close()
 
-    def search(self, title=None, author=None):
+    def search(self, q=None, title=None, author=None):
         db = SessionLocal()
 
         try:
             query = db.query(Book)
+
+            query = query.filter(Book.is_active == True)
+
+            if q:
+                query = query.filter(
+                    (Book.title.ilike(f"%{q}%")) |
+                    (Book.author.ilike(f"%{q}%"))
+                )
 
             if title:
                 query = query.filter(Book.title.ilike(f"%{title}%"))
