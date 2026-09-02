@@ -3,6 +3,8 @@ from fastapi import HTTPException
 from app.repositories.books import BookRepository
 from app.repositories.borrowings import BorrowingRepository
 from app.models.borrowings import Borrowing
+from app.repositories.borrowing_history import BorrowingHistoryRepository
+from app.models.borrowing_history import BorrowingHistory
 
 from datetime import date, timedelta
 
@@ -11,8 +13,9 @@ class BorrowingService:
     def __init__(self):
         self.book_repository = BookRepository()
         self.borrowing_repository = BorrowingRepository()
+        self.borrowing_history_repository = BorrowingHistoryRepository()
 
-    def borrow_book(self, book_id, tenant_name, company, phone_number):
+    def borrow_book(self, book_id, tenant_name, company, phone_number, admin_id):
         book = self.book_repository.get_by_id(book_id)
 
         if book is None:
@@ -44,9 +47,19 @@ class BorrowingService:
         )
         
 
-        return self.borrowing_repository.create(borrowing)
+        borrowing = self.borrowing_repository.create(borrowing)
 
-    def return_book(self, borrowing_id):
+        history = BorrowingHistory(
+            borrowing_id=borrowing.id,
+            admin_id=admin_id,
+            action="BORROW"
+        )
+
+        self.borrowing_history_repository.create(history)
+
+        return borrowing
+
+    def return_book(self, borrowing_id, admin_id):
         borrowing = self.borrowing_repository.get_by_id(borrowing_id)
 
         if borrowing is None:
@@ -64,7 +77,17 @@ class BorrowingService:
         borrowing.status = "returned"
         borrowing.return_date = date.today()
 
-        return self.borrowing_repository.update(borrowing)
+        borrowing = self.borrowing_repository.update(borrowing)
+
+        history = BorrowingHistory(
+            borrowing_id=borrowing.id,
+            admin_id=admin_id,
+            action="RETURN"
+        )
+
+        self.borrowing_history_repository.create(history)
+
+        return borrowing
 
     def get_borrowings(self):
         return self.borrowing_repository.get_all()
@@ -83,7 +106,7 @@ class BorrowingService:
 
         return overdue_borrowings
 
-    def extend_borrowing(self, borrowing_id, days):
+    def extend_borrowing(self, borrowing_id, days, admin_id):
         borrowing = self.borrowing_repository.get_by_id(borrowing_id)
 
         if borrowing is None:
@@ -106,7 +129,17 @@ class BorrowingService:
 
         borrowing.due_date = borrowing.due_date + timedelta(days=days)
 
-        return self.borrowing_repository.update(borrowing)
+        borrowing = self.borrowing_repository.update(borrowing)
+
+        history = BorrowingHistory(
+            borrowing_id=borrowing.id,
+            admin_id=admin_id,
+            action="EXTEND"
+        )
+
+        self.borrowing_history_repository.create(history)
+
+        return borrowing
     
     def get_borrowing(self, borrowing_id):
         borrowing = self.borrowing_repository.get_by_id(borrowing_id)
@@ -118,3 +151,31 @@ class BorrowingService:
             )
 
         return borrowing
+
+    def get_borrowing_history(self, borrowing_id):
+        borrowing = self.borrowing_repository.get_by_id(borrowing_id)
+
+        if borrowing is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Borrowing not found"
+            )
+
+        history_records = self.borrowing_history_repository.get_by_borrowing_id(
+            borrowing_id
+        )
+
+        result = []
+
+        for history, admin in history_records:
+            result.append({
+                "id": history.id,
+                "borrowing_id": history.borrowing_id,
+                "action": history.action,
+                "created_at": history.created_at,
+                "admin_id": admin.id,
+                "admin_first_name": admin.first_name,
+                "admin_last_name": admin.last_name
+            })
+
+        return result

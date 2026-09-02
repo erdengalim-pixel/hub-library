@@ -34,7 +34,7 @@ class BorrowingRepository:
                 .all()
             )
         finally:
-            db.close()
+            db.close()      
 
     def count_active_by_book_id(self, book_id):
         db = SessionLocal()

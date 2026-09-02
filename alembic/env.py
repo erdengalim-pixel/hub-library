@@ -10,6 +10,7 @@ from app.database import Base
 from app.models.books import Book
 from app.models.borrowings import Borrowing
 from app.models.users import User
+from app.models.borrowing_history import BorrowingHistory
 
 
 # this is the Alembic Config object, which provides
