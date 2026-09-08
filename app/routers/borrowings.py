@@ -56,6 +56,10 @@ def get_borrowings():
 def get_active_borrowings():
     return service.get_active_borrowings()
 
+@router.get("/borrowings/overdue")
+def get_overdue_borrowings():
+    return service.get_overdue_borrowings()
+
 @router.get("/borrowings/{borrowing_id}/history")
 def get_borrowing_history(borrowing_id: int):
     return service.get_borrowing_history(borrowing_id)

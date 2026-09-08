@@ -3,10 +3,11 @@ import {
   getCurrentUser,
   type CurrentUser
 } from "../services/api"
+import type { Page } from "../types/page"
 
 interface HeaderProps {
-  currentPage: "catalog" | "profile"
-  onNavigate: (page: "catalog" | "profile") => void
+  currentPage: Page
+  onNavigate: (page: Page) => void
   onLogout: () => void
 }
 
@@ -38,6 +39,20 @@ function Header({
             disabled={currentPage === "catalog"}
           >
             Catalog
+          </button>
+
+          <button
+            onClick={() => onNavigate("borrowings")}
+            disabled={currentPage === "borrowings"}
+          >
+            Borrowings
+          </button>
+
+          <button
+            onClick={() => onNavigate("inactive-books")}
+            disabled={currentPage === "inactive-books"}
+          >
+            Inactive Books
           </button>
 
           {user && (

@@ -1,5 +1,6 @@
 from app.database import SessionLocal
 from app.models.borrowings import Borrowing
+from app.models.books import Book
 
 
 class BorrowingRepository:
@@ -8,7 +9,11 @@ class BorrowingRepository:
         db = SessionLocal()
 
         try:
-            return db.query(Borrowing).all()
+            return (
+                db.query(Borrowing, Book)
+                .join(Book, Borrowing.book_id == Book.id)
+                .all()
+)
         finally:
             db.close()
 

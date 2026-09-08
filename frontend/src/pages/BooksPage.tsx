@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 
 import type { Book } from "../types/book"
-import { getBooks, searchBooks } from "../services/api"
+import { getBooks, searchBooks, createBook } from "../services/api"
 import BookCard from "../components/BookCard"
 import SearchBar from "../components/SearchBar"
 
@@ -10,6 +10,10 @@ function BooksPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [search, setSearch] = useState("")
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [title, setTitle] = useState("")
+  const [author, setAuthor] = useState("")
+  const [inventoryNumber, setInventoryNumber] = useState("")
 
   useEffect(() => {
     getBooks()
@@ -59,6 +63,29 @@ function BooksPage() {
     }
   }
 
+  async function handleCreateBook() {
+    try {
+      await createBook(
+        title,
+        author,
+        inventoryNumber
+      )
+
+      alert("Book created successfully")
+
+      setTitle("")
+      setAuthor("")
+      setInventoryNumber("")
+      setShowCreateForm(false)
+
+      const data = await getBooks()
+      setBooks(data)
+    } catch (error) {
+      console.error(error)
+      alert("Failed to create book")
+    }
+  }
+
   if (loading) {
     return <p>Loading books...</p>
   }
@@ -70,6 +97,42 @@ function BooksPage() {
 return (
   <div>
     <h1>Books</h1>
+
+    <button onClick={() => setShowCreateForm(true)}>
+      Add book
+    </button>
+
+  {showCreateForm && (
+    <div>
+      <h2>Add book</h2>
+
+      <input
+        placeholder="Title"
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+      />
+
+      <input
+        placeholder="Author"
+        value={author}
+        onChange={(event) => setAuthor(event.target.value)}
+      />
+
+      <input
+        placeholder="Inventory number"
+        value={inventoryNumber}
+        onChange={(event) => setInventoryNumber(event.target.value)}
+      />
+
+      <button onClick={handleCreateBook}>
+        Create
+      </button>
+
+      <button onClick={() => setShowCreateForm(false)}>
+        Cancel
+      </button>
+    </div>
+  )}
 
     <SearchBar
   value={search}

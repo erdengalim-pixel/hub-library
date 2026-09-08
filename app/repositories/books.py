@@ -16,6 +16,18 @@ class BookRepository:
         finally:
             db.close()
 
+    def get_inactive(self):
+        db = SessionLocal()
+
+        try:
+            return (
+                db.query(Book)
+                .filter(Book.is_active == False)
+                .all()
+            )
+        finally:
+            db.close()        
+
     def get_by_id(self, book_id):
         db = SessionLocal()
 

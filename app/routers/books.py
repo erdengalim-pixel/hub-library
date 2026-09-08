@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.services.books import BookService
-from app.schemas.books import BookCreate
+from app.schemas.books import BookCreate, BookUpdate
 from typing import Optional
 from app.core.security import get_current_user
 
@@ -25,6 +25,12 @@ def search_books(
         author=author
     )
 
+@router.get("/books/inactive")
+def get_inactive_books(
+    current_user = Depends(get_current_user)
+):
+    return service.get_inactive_books()
+
 @router.get("/books/{book_id}")
 def get_book(book_id: int):
     return service.get_book(book_id)
@@ -35,6 +41,17 @@ def create_book(
     current_user = Depends(get_current_user)
 ):
     return service.create_book(book_create)
+
+@router.put("/books/{book_id}")
+def update_book(
+    book_id: int,
+    book_update: BookUpdate,
+    current_user = Depends(get_current_user)
+):
+    return service.update_book(
+        book_id,
+        book_update
+    )
 
 @router.delete("/books/{book_id}")
 def delete_book(
@@ -49,3 +66,4 @@ def restore_book(
     current_user = Depends(get_current_user)
 ):
     return service.restore_book(book_id)
+

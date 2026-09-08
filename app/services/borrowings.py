@@ -90,7 +90,25 @@ class BorrowingService:
         return borrowing
 
     def get_borrowings(self):
-        return self.borrowing_repository.get_all()
+        records = self.borrowing_repository.get_all()
+
+        result = []
+
+        for borrowing, book in records:
+            result.append({
+                "id": borrowing.id,
+                "book_id": borrowing.book_id,
+                "book_title": book.title,
+                "tenant_name": borrowing.tenant_name,
+                "company": borrowing.company,
+                "phone_number": borrowing.phone_number,
+                "borrow_date": borrowing.borrow_date,
+                "due_date": borrowing.due_date,
+                "return_date": borrowing.return_date,
+                "status": borrowing.status
+            })
+
+        return result
 
     def get_active_borrowings(self):
         return self.borrowing_repository.get_active()
