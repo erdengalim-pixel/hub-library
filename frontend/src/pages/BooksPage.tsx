@@ -95,7 +95,7 @@ function BooksPage() {
   }
 
 return (
-  <div>
+  <div className="page-container">
     <h1>Books</h1>
 
     <button onClick={() => setShowCreateForm(true)}>
@@ -103,36 +103,50 @@ return (
     </button>
 
   {showCreateForm && (
-    <div>
-      <h2>Add book</h2>
+  <div className="form-panel">
+    <h2>Add book</h2>
 
+    <div className="form-field">
+      <label>Title</label>
       <input
-        placeholder="Title"
+        placeholder="Enter book title"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
       />
+    </div>
 
+    <div className="form-field">
+      <label>Author</label>
       <input
-        placeholder="Author"
+        placeholder="Enter author name"
         value={author}
         onChange={(event) => setAuthor(event.target.value)}
       />
+    </div>
 
+    <div className="form-field">
+      <label>Inventory number</label>
       <input
-        placeholder="Inventory number"
+        placeholder="Enter inventory number"
         value={inventoryNumber}
         onChange={(event) => setInventoryNumber(event.target.value)}
       />
+    </div>
 
+    <div className="form-actions">
       <button onClick={handleCreateBook}>
-        Create
+        Add book
       </button>
 
-      <button onClick={() => setShowCreateForm(false)}>
+      <button
+        className="clear-button"
+        onClick={() => setShowCreateForm(false)}
+      >
         Cancel
       </button>
     </div>
-  )}
+  </div>
+)}
 
     <SearchBar
   value={search}

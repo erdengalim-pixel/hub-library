@@ -8,6 +8,9 @@ import Header from "./components/Header"
 import { logout } from "./services/api"
 import InactiveBooksPage from "./pages/InactiveBooksPage"
 import type { Page } from "./types/page"
+import PublicCatalogPage from "./pages/PublicCatalogPage"
+
+type PublicView = "catalog" | "login"
 
 function App() {
   const [token, setToken] = useState(
@@ -15,14 +18,32 @@ function App() {
   )
 
   const [page, setPage] = useState<Page>("catalog")
-  
+
+  const [publicView, setPublicView] =
+    useState<PublicView>("catalog")
+
   if (!token) {
-    return <LoginPage onLogin={setToken} />
+    if (publicView === "login") {
+      return (
+        <LoginPage
+          onLogin={(newToken) => {
+            setToken(newToken)
+          }}
+        />
+      )
+    }
+
+    return (
+      <PublicCatalogPage
+        onAdminLogin={() => setPublicView("login")}
+      />
+    )
   }
 
   function handleLogout() {
     logout()
     setToken(null)
+    setPublicView("catalog")
   }
 
   return (

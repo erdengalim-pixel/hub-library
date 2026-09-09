@@ -20,11 +20,17 @@ function SearchBar({
         onChange={(event) => onChange(event.target.value)}
       />
 
-      <button onClick={onSearch}>
+      <button
+        className="search-button"
+        onClick={onSearch}
+      >
         Search
       </button>
 
-      <button onClick={onClear}>
+      <button
+        className="clear-button"
+        onClick={onClear}
+      >
         Clear
       </button>
     </div>

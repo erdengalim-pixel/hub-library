@@ -29,45 +29,53 @@ function Header({
   return (
     <header className="header">
       <div className="header-content">
+
         <div className="logo">
-          📚 Hub Library
+          <span className="logo-icon">📚</span>
+          <span>Hub Library</span>
         </div>
 
-        <nav>
+        <nav className="navigation">
+
           <button
+            className={currentPage === "catalog" ? "nav-button active" : "nav-button"}
             onClick={() => onNavigate("catalog")}
-            disabled={currentPage === "catalog"}
           >
             Catalog
           </button>
 
           <button
+            className={currentPage === "borrowings" ? "nav-button active" : "nav-button"}
             onClick={() => onNavigate("borrowings")}
-            disabled={currentPage === "borrowings"}
           >
             Borrowings
           </button>
 
           <button
+            className={currentPage === "inactive-books" ? "nav-button active" : "nav-button"}
             onClick={() => onNavigate("inactive-books")}
-            disabled={currentPage === "inactive-books"}
           >
             Inactive Books
           </button>
 
           {user && (
             <button
+              className={currentPage === "profile" ? "nav-button active" : "nav-button"}
               onClick={() => onNavigate("profile")}
-              disabled={currentPage === "profile"}
             >
               {user.first_name} {user.last_name}
             </button>
           )}
 
-          <button onClick={onLogout}>
-            Logout
+          <button
+            className="logout-button"
+            onClick={onLogout}
+          >
+              Logout
           </button>
+
         </nav>
+
       </div>
     </header>
   )
