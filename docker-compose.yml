@@ -4,9 +4,11 @@ services:
     container_name: hub-library-db
 
     environment:
-      POSTGRES_DB: hub_library
-      POSTGRES_USER: hub_user
-      POSTGRES_PASSWORD: hub_password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
 
     ports:
       - "5432:5432"
@@ -14,5 +16,36 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: hub-library-backend
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DB_HOST: db
+    secrets:
+      - db_password
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: hub-library-frontend
+    ports:
+      - "8080:80"
+
 volumes:
   postgres_data:
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt

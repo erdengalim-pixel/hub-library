@@ -1,0 +1,10 @@
+.env
+secrets/
+.venv/
+.git/
+.gitignore
+.dockerignore
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
